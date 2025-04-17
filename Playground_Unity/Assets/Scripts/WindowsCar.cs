@@ -76,6 +76,17 @@ public class WindowCar : MonoBehaviour, IToggleable, IActions
     public void SetIsDown(bool bul)
     {
         isDown = bul;
+        // Adjust the Y position of the target based on the calculated movement amount
+        Vector3 newTargetPosition = startPos;
+        if (isDown)
+        {
+            newTargetPosition.y -= range;
+            currentTargetPos.localPosition = newTargetPosition;
+        }
+        else
+        {
+            currentTargetPos.localPosition = startPos;       
+        }           
     }
     // Set the target position based on a given percentage
     public void SetTargetPos(float percentage)
