@@ -56,15 +56,11 @@ public class Door : MonoBehaviour, IToggleable, IActions, ILockable
 
     public void ActiveFunction(bool isActive)
     {   
-        if(!isActive) {
+        if(isLocked) {
             SetAngleDoor("0");
             return;
         }
-
-        if (openAngle == 0) {
-            SetAngleDoor("100");
-        }
-        
+        SetAngleDoor(isActive?"100":"0");
     }
 
     public void ActiveFunctionsByAction(string actionName, string options)
@@ -72,6 +68,10 @@ public class Door : MonoBehaviour, IToggleable, IActions, ILockable
         switch(actionName)
         {
             case "position":
+                if(isLocked) {
+                    SetAngleDoor("0");
+                    return;
+                }
                 SetAngleDoor(options);            
                 break;
         }
@@ -80,12 +80,11 @@ public class Door : MonoBehaviour, IToggleable, IActions, ILockable
     {
         if (float.TryParse(angle,out var result))
         {
-            if (isLocked) return;
-            if (result > 0)
+            if (result >= 100)
             {
                 WebGLInteraction.SetValueAPIBrowser(gameObject.name, "true");
             }
-            else
+            if (result <= 0)
             {
                 WebGLInteraction.SetValueAPIBrowser(gameObject.name, "false");
             } 
@@ -97,6 +96,9 @@ public class Door : MonoBehaviour, IToggleable, IActions, ILockable
 
     public void Locked(bool bul)
     {      
-            isLocked = bul;
+        isLocked = bul;
+        if(isLocked) {
+            SetAngleDoor("0");
+        }
     }
 }
