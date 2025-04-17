@@ -1,124 +1,95 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-// Data structure to hold component control information
+
+// Data structure to hold control information for a car component
 public class ComponentControlData
 {
-    public string name; // Name of the component to control
-    public string action; // Action to perform on the component
-    public string options; // Additional options for the action
+    public string name;     // The name of the component to control
+    public string action;   // The action to perform on the component
+    public string options;  // Additional options related to the action
 }
 
 public class CarController : MonoBehaviour
 {
-    public float speed = 0.1f;     
-    private float moveInput;
-    public float lastSpeed = 0f;
-    private float turnInput;
-    public float acceleration = 0.0001f;
-    public Vector3 rollbackPos;
+    public float speed = 0.1f;           // Movement speed multiplier
+    private float moveInput;             // Current input value for movement
+    public float lastSpeed = 0f;         // Speed value from previous frame
+    private float turnInput;             // Turn input (not used in this version)
+    public float acceleration = 0.0001f; // How quickly the car accelerates
+    public Vector3 rollbackPos;          // Position to reset to when out of bounds
+
     // References to car components
     public BackgroundManager background;
-    public Door_Row1_Driver door1; // Driver-side door in row 1
-    public Door_Row1_Passenger door2; // Passenger-side door in row 1
-    public Door door3;
-    public List<LightCustoms> lightsBeams; // High beam lights
-    public List<LightCustoms> lightHazard; // Brake lights
-    public List<LightCustoms> lightBrake;
-    public Trunk trunkRear; // Rear trunk
-    public Seat seat1;
-    public Seat seat2;
-    public Wipper wipperFront;
-    public Mirror mirrorLeft;
-    public Mirror mirrorRight;
-    public GameObject[] arrComponent = new GameObject[100];
-    //public List<IToggleable> toggleEntities;
-    public Dictionary<string, GameObject> entitiesManager;
-    //public Dictionary<string, Func<string,GameObject>> entitiesActions;
+    public List<LightCustoms> lightHazard; // List of hazard lights
+    public List<LightCustoms> lightBrake;  // List of brake lights
+    public GameObject[] arrComponent = new GameObject[100]; // Array holding all car components
+    public Dictionary<string, GameObject> entitiesManager;  // Dictionary for name-component mapping
+
     private void Start()
     {
-        //entitiesActions = new Dictionary<string, Func<string, GameObject>>()
-        //{
-        //    {"row2_door3", name => GetComponentCarByName(name)},
-        //    //{"mirror_right",name => GetComponentCarByName(name)},
-        //};
-
-        //MoveCar(10);
-
+        // Initialize the entity dictionary with references from the array
         entitiesManager = new Dictionary<string, GameObject>()
         {
-            {"mirror_left"              ,arrComponent[0]},
-            {"mirror_right"             ,arrComponent[1]},
-            {"beam_high"                ,arrComponent[2]},
-            {"beam_low"                 ,arrComponent[3]},
-            {"seat1"                    ,arrComponent[4]},
-            {"seat2"                    ,arrComponent[5]},
-            {"window_1"                 ,arrComponent[6]},
-            {"window_2"                 ,arrComponent[7]},
-            {"ambientlight_1"           ,arrComponent[8]},
-            {"ambientlight_2"           ,arrComponent[9]},
-            {"row2_door3"               ,arrComponent[10]},
-            {"window_3"                 ,arrComponent[11]},
-            {"window_4"                 ,arrComponent[12]},
-            {"row2_door4"               ,arrComponent[13]},
-            {"wheels"                   ,arrComponent[14]},
-            {"trunk_front"              ,arrComponent[15]},
-            {"trunk_rear"               ,arrComponent[16]},
-            {"rear_light"               ,arrComponent[17]},
-            {"front_light"              ,arrComponent[18]},
-            {"license_plate"            ,arrComponent[19]},
-            {"wipper_rear"              ,arrComponent[20]},
-            {"seat3"                    ,arrComponent[21]},
-            {"seat4"                    ,arrComponent[22]},
-            {"air_bag"                  ,arrComponent[23]},
-            {"wipper_front"             ,arrComponent[24]},
-            {"row1_door1"               ,arrComponent[25]},
-            {"row1_door2"               ,arrComponent[26]},
+            {"mirror_left"       ,arrComponent[0]},
+            {"mirror_right"      ,arrComponent[1]},
+            {"beam_high"         ,arrComponent[2]},
+            {"beam_low"          ,arrComponent[3]},
+            {"seat1"             ,arrComponent[4]},
+            {"seat2"             ,arrComponent[5]},
+            {"window_1"          ,arrComponent[6]},
+            {"window_2"          ,arrComponent[7]},
+            {"ambientlight_1"    ,arrComponent[8]},
+            {"ambientlight_2"    ,arrComponent[9]},
+            {"row2_door3"        ,arrComponent[10]},
+            {"window_3"          ,arrComponent[11]},
+            {"window_4"          ,arrComponent[12]},
+            {"row2_door4"        ,arrComponent[13]},
+            {"wheels"            ,arrComponent[14]},
+            {"trunk_front"       ,arrComponent[15]},
+            {"trunk_rear"        ,arrComponent[16]},
+            {"rear_light"        ,arrComponent[17]},
+            {"front_light"       ,arrComponent[18]},
+            {"license_plate"     ,arrComponent[19]},
+            {"wipper_rear"       ,arrComponent[20]},
+            {"seat3"             ,arrComponent[21]},
+            {"seat4"             ,arrComponent[22]},
+            {"air_bag"           ,arrComponent[23]},
+            {"wipper_front"      ,arrComponent[24]},
+            {"row1_door1"        ,arrComponent[25]},
+            {"row1_door2"        ,arrComponent[26]},
         };
     }
+
     private void Update()
     {
+        // Apply acceleration and update position
         moveInput = Mathf.Lerp(lastSpeed, moveInput, acceleration);
         transform.Translate(Vector3.right * moveInput * speed * Time.deltaTime);
         lastSpeed = moveInput;
+
+        // Check if car went out of bounds
         RollbackPosition();
     }
-    // Method to control components based on JSON data
+
+    // Main control function triggered by external API (with JSON input)
     public void ControlComponent(string jsonData)
     {
-        // Deserialize JSON string into ComponentControlData object
+        // Deserialize input string into structured data
         ComponentControlData data = JsonUtility.FromJson<ComponentControlData>(jsonData);
-        string entityName = data.name; // Name of the entity to control
-        string action = data.action; // Action to perform
-        string options = data.options; // Additional options
+        string entityName = data.name;
+        string action = data.action;
+        string options = data.options;
 
-        //if(entitiesActions.TryGetValue(entityName,out var actions))
-        //{
-        //   GameObject entitys = actions.Invoke(entityName);
-        //    if (bool.TryParse(action, out var result))
-        //    {
-        //        IToggleable toggleFunctions = entitys.GetComponent<IToggleable>();
-        //        if (toggleFunctions != null)
-        //        {
-        //            toggleFunctions.ActiveFunction(result);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        IActions actionName = entitys.GetComponent<IActions>();
-        //        if (actionName != null)
-        //        {
-        //            actionName.ActiveFunctionsByAction(action, options);
-        //        }
-        //    }
-        //}
-
+        // Check if the component exists
         if (entitiesManager.TryGetValue(entityName, out var entity))
         {
+            // Check if the action is a boolean string
             if (bool.TryParse(action, out var result))
             {
                 switch (options)
                 {
                     case "islocked":
+                        // Lock or unlock if component supports locking
                         ILockable lockable = entity.GetComponent<ILockable>();
                         if (lockable != null)
                         {
@@ -126,6 +97,7 @@ public class CarController : MonoBehaviour
                         }
                         break;
                     default:
+                        // Toggle component if supported
                         IToggleable toggleFunctions = entity.GetComponent<IToggleable>();
                         if (toggleFunctions != null)
                         {
@@ -136,6 +108,7 @@ public class CarController : MonoBehaviour
             }
             else
             {
+                // Handle more complex actions
                 IActions actionName = entity.GetComponent<IActions>();
                 if (actionName != null)
                 {
@@ -144,106 +117,66 @@ public class CarController : MonoBehaviour
             }
         }
 
-        // Determine which component to control based on the name
+        // Special case for certain light systems
         switch (entityName)
-        {        
+        {
             case "light_brake":
-                PerformLightsAction(lightBrake, action, options); // Perform action brake on Hazard lights
+                PerformLightsAction(lightBrake, action, options);
                 break;
             case "hazard_signaling":
-                PerformLightsAction(lightHazard, action, options); // Perform action on Hazard lights wipper_front
-                break;
-        }
-    }
-    // Method to perform actions on a door
-    public void PerformDoorAction(Door door, string action, string options)
-    {
-        switch (action)
-        {
-            case "open_door":
-                door.OpenDoor(); // Open the door
-                break;
-            case "close_door":
-                door.CloseDoor(); // Close the door
-                break;
-            case "lock_door":
-                door.LockDoor(); // Lock the door
-                break;
-            case "unlock_door":
-                door.UnLockDoor(); // Unlock the door
+                PerformLightsAction(lightHazard, action, options);
                 break;
         }
     }
 
-    // Method to perform actions on a list of lights
+    // Perform action on a list of light components
     public void PerformLightsAction(List<LightCustoms> lights, string action, string options)
     {
         switch (action)
         {
             case "turn_on_beam_low":
                 foreach (LightBeam light in lights)
-                {
-                    light.LowBeams(); // Turn on the lights beam low
-                }
+                    light.LowBeams();
                 break;
             case "turn_on":
                 foreach (LightBeam light in lights)
-                {
-                    light.HighBeams(); // Turn on the lights 
-                }
+                    light.HighBeams();
                 break;
             case "turn_off":
                 foreach (LightBeam light in lights)
-                {
-                    light.OffBeams(); // Turn off the lights
-                }
+                    light.OffBeams();
                 break;
             case "turn_on_brake":
                 foreach (LightBrake light in lights)
-                {
-                    light.ActiveBrake(true); // Turn on the lights brake
-                }
+                    light.ActiveBrake(true);
                 break;
             case "turn_off_brake":
                 foreach (LightBrake light in lights)
-                {
-                    light.ActiveBrake(false); // Turn off the lights brake
-                }
+                    light.ActiveBrake(false);
                 break;
             case "turn_on_signal":
                 foreach (LightHazard light in lights)
-                {
-                    light.ActiveHazard(true);// Turn on the lights hazard
-                }
+                    light.ActiveHazard(true);
                 break;
             case "turn_off_signal":
                 foreach (LightHazard light in lights)
-                {
-                    light.ActiveHazard(false);// Turn off the lights hazard
-                }
+                    light.ActiveHazard(false);
                 break;
         }
     }
-    public GameObject GetComponentCarByName(string name)
-    {
-        foreach (var item in arrComponent)
-        {
-            if (name == item.name)
-            {
-                return item;
-            }
-        }
-        return null;
-    }
+
+    // Update movement inputs
     public void MoveCar(float move, float turn = 0f)
     {
         moveInput = move;
         turnInput = turn;
     }
+
+    // If car goes out of bounds, reset its position
     public void RollbackPosition()
     {
         Vector3 temp = transform.localPosition;
-        if (temp.x > 100 || temp.x<-25)
+        if (temp.x > 100 || temp.x < -25)
         {
             background.HiddenBackground(true);
             transform.localPosition = rollbackPos;

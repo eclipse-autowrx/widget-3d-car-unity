@@ -55,11 +55,12 @@ public class Trunk : MonoBehaviour, IClickable, IToggleable, ILockable, IActions
         if(vlue & !isLocked)
         {
             isOpen = true;
-           
+            openAngle = maxAngle;
         }
         else
         {
             isOpen = false;
+            openAngle = 0;
         }
     }
 
