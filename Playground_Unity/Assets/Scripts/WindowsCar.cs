@@ -39,6 +39,7 @@ public class WindowCar : MonoBehaviour, IToggleable, IActions
             // Calculate the total range the window can move
             range = startPos.y - currentTargetPos.localPosition.y;
         }
+        SetTargetPos(0);
     }
 
     void Update()

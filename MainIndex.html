@@ -1,719 +1,206 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Playground_Unity</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-   
-    <!-- Import Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- External script for syncing (commented out, but included) -->
-    <!-- <script defer src="https://bestudio.digitalauto.tech/project/BzR91b49OHqj/syncer.js"></script> -->
-    <script defer src="https://bestudio.digitalauto.tech/project/BzR91b49OHqj/syncer.js"></script>
-  </head>
-  <body>
-    <!-- Unity WebGL container -->
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" tabindex="-1"></canvas>
-      <!-- Loading bar for Unity -->
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Playground_Unity</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+
+  <!-- Import Tailwind CSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- External script for syncing (commented out, but included) -->
+  <script defer src="https://bestudio.digitalauto.tech/project/BzR91b49OHqj/syncer.js"></script>
+</head>
+
+<body>
+  <!-- Unity WebGL container -->
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <!-- Loading bar for Unity -->
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
       </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer">     
-      </div>
-      <!-- <button class="custom-button" onclick="setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.IsOpen','true')">Set API</button> -->
     </div>
+    <div id="unity-warning"></div>
+    <div id="unity-footer">
+    </div>
+    <!-- <button class="custom-button" onclick="setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.IsOpen','true')">Set API</button> -->
+  </div>
 
-    <script src="FromUnity.js" defer></script>
+  <script src="FromUnity.js" defer></script>
+  <script src="data.js"></script>
 
-    <script>
+  <script>
 
-function callFromUnity(command, name, value) {
-        if(command == "set-api-value" && name) {
+    function callFromUnity(command, name, value) {
+      if (command == "set-api-value" && name) {
         setApiValue(name, value)
-        }
+      }
+    }
+
+    // Declare variables to hold the Unity instance and the canvas element
+    var canvas = document.querySelector("#unity-canvas");
+    var unityInstance;
+
+    // Function to display banners (warning or error messages) in Unity WebGL container
+    function unityShowBanner(msg, type) {
+      var warningBanner = document.querySelector("#unity-warning");
+
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
       }
 
-      // Declare variables to hold the Unity instance and the canvas element
-      var canvas = document.querySelector("#unity-canvas");
-      var unityInstance;
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
 
-      // Function to display banners (warning or error messages) in Unity WebGL container
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
+      // Customize banner style based on type (error or warning)
+      if (type == 'error') div.style = 'background: red; padding: 10px;';
+      else if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
 
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      updateBannerVisibility();
+    }
+
+    // Set the build version and define build paths dynamically
+    let versionBuilt = "widget-3d-car-unity";
+    var projectName = `${versionBuilt}`
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + `/${projectName}.loader.js`;
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + `/${projectName}.data.unityweb`,
+      frameworkUrl: buildUrl + `/${projectName}.framework.js.unityweb`,
+      codeUrl: buildUrl + `/${projectName}.wasm.unityweb`,
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "Playground_Unity",
+      productVersion: "0.1",
+      showBanner: unityShowBanner,  // Function to show warning or error messages
+    };
+
+    // Check if the user is on a mobile device to adjust the viewport and canvas size
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      document.querySelector("#unity-container").className = "unity-mobile";
+      canvas.className = "unity-mobile";
+    } else {
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
+    }
+
+    // Show the loading bar while Unity content is loading
+    document.querySelector("#unity-loading-bar").style.display = "block";
+
+    // Create a script element to load Unity WebGL loader script
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      // Once Unity loader script is loaded, create the Unity instance
+      createUnityInstance(canvas, config, (progress) => {
+        document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+      }).then((instance) => {
+        unityInstance = instance;  // Store reference to Unity instance
+        document.querySelector("#unity-loading-bar").style.display = "none";  // Hide loading bar
+      }).catch((message) => {
+        alert(message);  // Alert if there's an error creating Unity instance
+      });
+    };
+    document.body.appendChild(script);
+
+    // Button to call a function in Unity
+    // document.getElementById("callUnityFunction").onclick = function() {
+    //   if (unityInstance) {
+    //     unityInstance.SendMessage("GameController", "Hello", "Hello from JavaScript!");  // Send message to Unity
+    //   } else {
+    //     alert("Unity instance is not ready!");  // Show alert if Unity instance is not loaded
+    //   }
+    // };
+
+    // Additional custom logic for widget loading and unloading
+    const appendLog = () => { };
+    let left_door_opened = false;
+    let interval;
+    let viewpoint;
+    let VEHICLE_PAINT = "#005072";
+
+    function sendRequestToUnity(name, action, options) {
+      if (!unityInstance) return
+      let message = JSON.stringify({ name, action, options });
+      unityInstance.SendMessage("CarController", "ControlComponent", message); //This API only reveive 1 parameter
+      // console.log("unityInstance.SendMessage", message)
+    }
+
+    var OBJECT_MAPPING = SIGNAL_MAP
+
+    function sendValueToUnity(obj, newValue) {
+      if (obj.dataType == 'boolean') {
+        let command = obj.actionMaps[String(newValue.value)]
+        if (obj.behaviour !== undefined) {
+          let behaviours = obj.behaviour
+          sendRequestToUnity(obj.entity, command, behaviours)// behaviour for check behaviour(islocked) set in Unity
         }
-
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-
-        // Customize banner style based on type (error or warning)
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-
-        updateBannerVisibility();
-      }
-
-      // Set the build version and define build paths dynamically
-      let versionBuilt = "widget-3d-car-unity";
-      var projectName = `${versionBuilt}`
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + `/${projectName}.loader.js`;
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + `/${projectName}.data.unityweb`,
-        frameworkUrl: buildUrl + `/${projectName}.framework.js.unityweb`,
-        codeUrl: buildUrl + `/${projectName}.wasm.unityweb`,
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "Playground_Unity",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,  // Function to show warning or error messages
-      };
-
-      // Check if the user is on a mobile device to adjust the viewport and canvas size
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
+        else {
+          sendRequestToUnity(obj.entity, command, '')//'' is defaul behavior IToggleable in Unity
+        }
       } else {
-        canvas.style.width = "100vw";
-        canvas.style.height = "100vh";
+        sendRequestToUnity(obj.entity, obj.actionMaps, newValue.value)
+        // console.log(`actionMaps value is:---------------> ${obj.actionMaps}`)
       }
+      obj.lastValue = newValue.value;
+    }
 
-      // Show the loading bar while Unity content is loading
-      document.querySelector("#unity-loading-bar").style.display = "block";
+    const syncAction = () => {
+      OBJECT_MAPPING.forEach(obj => {
+        if (!obj.api) return
 
-      // Create a script element to load Unity WebGL loader script
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        // Once Unity loader script is loaded, create the Unity instance
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((instance) => {
-          unityInstance = instance;  // Store reference to Unity instance
-          document.querySelector("#unity-loading-bar").style.display = "none";  // Hide loading bar
-        }).catch((message) => {
-          alert(message);  // Alert if there's an error creating Unity instance
-        });
-      };
-      document.body.appendChild(script);
+        let newValue = getApiValue(obj.api)
+        if (newValue && (obj.isFirstSent || newValue.value !== obj.lastValue)) {
+          // console.log(obj)
+          if(obj.isFirstSent) {
+            // console.log("====== isFirstSent")
+            obj.isFirstSent = false
+          }
+          // console.log("====== sendValueToUnity", obj, newValue)
+          sendValueToUnity(obj, newValue)
+        }
+      })
+    }
 
-      // Button to call a function in Unity
-      // document.getElementById("callUnityFunction").onclick = function() {
-      //   if (unityInstance) {
-      //     unityInstance.SendMessage("GameController", "Hello", "Hello from JavaScript!");  // Send message to Unity
-      //   } else {
-      //     alert("Unity instance is not ready!");  // Show alert if Unity instance is not loaded
-      //   }
-      // };
+    // Logic for when the widget is loaded
+    const onWidgetLoaded = (options) => {
+      let carColor = options.car_color;
+      console.log("Widget options are:--------------------------------------------->", options.apis);
+      OBJECT_MAPPING.forEach(obj => {
+        obj["api"] = options['apis'][obj.optionsName] || obj["api"] //set value for field optionsName via apis on browserbrowser 
+        obj.isFirstSent = true  
+        if(obj.api) {
+          // console.log(`====== isInit setApiValue ${obj.api} ${obj.lastValue}`)
+          // setTimeout(() => {
+          //   setApiValue(obj.api, `${obj.lastValue}`)  
+          // }, 3000)
+        }
+      })
+      setTimeout(() => {
+        interval = setInterval(syncAction, 200);
+      }, 3000)
+    };
 
-      // Additional custom logic for widget loading and unloading
-      const appendLog = () => {};
-      let left_door_opened = false;
-      let interval;
-      let viewpoint;
-      let VEHICLE_PAINT = "#005072";
-
-      function sendRequestToUnity(name, action, options) {
-        if(!unityInstance) return
-        let message = JSON.stringify({ name, action, options });
-        unityInstance.SendMessage("CarController", "ControlComponent", message);//This API only reveive 1 parameter
+    // Logic for when the widget is unloaded
+    const onWidgetUnloaded = (options) => {
+      if (interval) {
+        clearInterval(interval);  // Clear the interval if the widget is unloaded
       }
-     
-      let OBJECT_MAPPING = [
-        {
-          entity: 'row1_door1',//param for Unity (entity)
-          behaviour:"",//for check "islocked"
-          optionsName: 'row1_door1_open',//field on browser
-          api: 'Vehicle.Cabin.Door.Row1.Driver.IsOpen',//API defaul
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",//value return from browser and value send to Unity (action)
-            "false": "false"
-          }
-        },
-        {
-          entity:'row1_door1',
-          optionsName:'door1_position',
-          api:'Vehicle.Cabin.Door.Row1.DriverSide.Position',
-          dataType:'uint8',
-          lastValue:undefined,
-          actionMaps:'position'
-        },
-        {
-          entity: 'row1_door1',
-          behaviour:"islocked",
-          optionsName: 'door1_locked',
-          api: 'Vehicle.Cabin.Door.Row1.DriverSide.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false"
-          }
-        },
-        {
-          entity: 'row1_door2',
-          optionsName: 'row1_door2_open',
-          api: 'Vehicle.Cabin.Door.Row1.Passenger.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false"
-          }
-        },
-        {
-          entity:'row1_door2',
-          optionsName:'door2_position',
-          api:'Vehicle.Cabin.Door.Row1.PassengerSide.Position',
-          dataType:'uint8',
-          lastValue:0,
-          actionMaps:'position'
-        },
-        {
-          entity: 'row1_door2',
-          behaviour:"islocked",
-          optionsName: 'door2_locked',
-          api: 'Vehicle.Cabin.Door.Row1.DriverSide.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false"
-          }
-        },
-        {
-          entity: 'beam_high',
-          optionsName: 'beam_high_open',
-          api: 'Vehicle.Body.Lights.Beam.High.IsOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false"
-          }
-        },
-        {
-          entity: 'beam_low',
-          optionsName: 'beam_low_open',
-          api: 'Vehicle.Body.Lights.Beam.Low.IsOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false"
-          }
-        },
-        {
-          entity:'trunk_rear', 
-          behaviour:"",
-          optionsName: 'trunk_rear_open',
-          api:'Vehicle.Body.Trunk.Rear.IsOpen',
-          dataType:'boolean',
-          lastVaLue: false,
-          actionMaps:{
-            "true" : "true",
-            "false": "false"
-          }
-        },
-        {
-          entity:'trunk_rear', 
-          behaviour:"",
-          optionsName: 'trunk_rear_position',
-          api:'Vehicle.Body.Trunk.Rear.Position',
-          dataType:'uint8',
-          lastVaLue: 0,
-          actionMaps:"position"   
-        },
-        {
-          entity:'trunk_rear', 
-          behaviour:"islocked",
-          optionsName: 'trunk_rear_islocked',
-          api:'Vehicle.Body.Trunk.Rear.IsLocked',
-          dataType:'boolean',
-          lastVaLue: false,
-          actionMaps:{
-            "true" : "true",
-            "false": "false"
-          }
-        },
-        {
-          entity: 'rear_light',
-          behaviour:"",
-          optionsName: 'rear_light',
-          api: 'Vehicle.Body.Trunk.Rear.IsLightOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity:'trunk_front', 
-          behaviour:"",
-          optionsName: 'trunk_front_position',
-          api:'Vehicle.Body.Trunk.Front.Position',
-          dataType:'uint8',
-          lastVaLue: 0,
-          actionMaps:"position"   
-        },
-        {
-          entity: 'trunk_front',
-          behaviour:"",
-          optionsName: 'trunk_front_isopen',
-          api: 'Vehicle.Body.Trunk.Front.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity: 'trunk_front',
-          behaviour:"islocked",
-          optionsName: 'trunk_front_islocked',
-          api: 'Vehicle.Body.Trunk.Front.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity: 'front_light',
-          behaviour:"",
-          optionsName: 'front_light',
-          api: 'Vehicle.Body.Trunk.Front.IsLightOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity:'light_brake',
-          optionsName: 'light_brake_active',         
-          api:'Vehicle.Body.Lights.Brake.IsActive',    
-          dataType:'boolean',
-          lastVaLue: false,
-          actionMaps:{
-            "ACTIVE" : "turn_on_brake",
-            "INACTIVE": "turn_off_brake"
-          }
-        },
-        {
-          entity:'seat1',
-          optionsName: 'seat1_height',  //variable name to get API       
-          api:'Vehicle.Cabin.Seat.Row1.DriverSide.Height',    
-          dataType:'uint16',
-          lastVaLue: 0,
-          actionMaps: 'seat_height'                    
-        },
-        {
-          entity:'seat1',
-          optionsName:'seat1_position',
-          api:'Vehicle.Cabin.Seat.Row1.DriverSide.Position',
-          dataType:'uint8',
-          lastValue:0,
-          actionMaps:'seat_position'
-        },
-        {
-          entity:'hazard_signaling',
-          optionsName:'hazard_signaling',
-          api:'Vehicle.Body.Lights.Hazard.IsSignaling',
-          dataType:'boolean',
-          lastValue:false,
-          actionMaps:{
-            "true" : "turn_on_signal",
-            "false": "turn_off_signal"
-          }
-        }, 
-        {
-          entity:'seat2',
-          optionsName:'seat2_position',
-          api:'Vehicle.Cabin.Seat.Row1.PassengerSide.Position',
-          dataType:'uint8',
-          lastValue:0,
-          actionMaps:'seat_position'
-        },    
-        {
-          entity:'seat2',
-          optionsName: 'seat2_height',  //variable name to get API       
-          api:'Vehicle.Cabin.Seat.Row1.PassengerSide.Height',    
-          dataType:'uint16',
-          lastVaLue: 0,
-          actionMaps: 'seat_height'                    
-        },  
-        {
-          entity:'seat3',
-          optionsName:'seat3_position',
-          api:'Vehicle.Cabin.Seat.Row2.DriverSide.Position',
-          dataType:'uint8',
-          lastValue:0,
-          actionMaps:'seat_position'
-        },
-        {
-          entity:'seat3',
-          optionsName: 'seat3_height',  //variable name to get API       
-          api:'Vehicle.Cabin.Seat.Row2.DriverSide.Height',    
-          dataType:'uint16',
-          lastVaLue: 0,
-          actionMaps: 'seat_height'                    
-        },    
-        {
-          entity:'seat4',
-          optionsName:'seat4_position',
-          api:'Vehicle.Cabin.Seat.Row2.PassengerSide.Position',
-          dataType:'uint8',
-          lastValue:0,
-          actionMaps:'seat_position'
-        },
-        {
-          entity:'seat4',
-          optionsName: 'seat4_height',  //variable name to get API       
-          api:'Vehicle.Cabin.Seat.Row2.PassengerSide.Height',    
-          dataType:'uint16',
-          lastVaLue: 0,
-          actionMaps: 'seat_height'                    
-        },          
-        {
-          entity: 'row2_door3',//param for Unity (entity)
-          optionsName: 'row2_door3_open',//field on browser 
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-           "true": "true",//value return from browser and value send to Unity (action)
-           "false": "false"         
-          }
-        },   
-        {
-          entity: 'row2_door3',//param for Unity (entity)
-          optionsName: 'door3_position',//field on browser 
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.Position',
-          dataType: 'uint8',
-          lastValue: 0,
-          actionMaps: 'position'        
-        }, 
-        {
-          entity: 'row2_door3',
-          behaviour:"islocked",
-          optionsName: 'door3_locked',
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false",           
-          },
-        },   
-        {
-          entity: 'row2_door4',
-          behaviour:"",
-          optionsName: 'row2_door4_open',
-          api: 'Vehicle.Cabin.Door.Row2.PassengerSide.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false",           
-          },
-        }, 
-        {
-          entity: 'row2_door4',//param for Unity (entity)
-          behaviour:"",
-          optionsName: 'door4_position',//field on browser 
-          api: 'Vehicle.Cabin.Door.Row2.PassengerSide.Position',
-          dataType: 'uint8',
-          lastValue: 0,
-          actionMaps: 'position'        
-        },   
-        {
-          entity: 'row2_door4',
-          behaviour:"islocked",
-          optionsName: 'door4_locked',
-          api: 'Vehicle.Cabin.Door.Row2.PassengerSide.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-            "true": "true",
-            "false": "false",           
-          },
-        },               
-        {
-          entity: 'wipper_front',
-          optionsName: 'wipper_front',
-          api: 'Vehicle.Body.Windshield.Front.Wiping.Mode', 
-          dataType: "string",
-          lastValue: "OFF",
-          actionMaps: ''        
-        },  
-        {
-          entity: 'wipper_rear',
-          optionsName: 'wipper_rear',
-          api: 'Vehicle.Body.Windshield.Rear.Wiping.Mode', 
-          dataType: "string",
-          lastValue: "OFF",
-          actionMaps: 'mode'        
-        },  
-        {
-          entity: 'mirror_left',
-          optionsName: 'mirror_left_isfolded',
-          api: 'Vehicle.Body.Mirrors.DriverSide.IsFolded', 
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        },           
-        {
-          entity: 'mirror_left',
-          behaviour:"islocked",
-          optionsName: 'mirror_left_islocked',
-          api: 'Vehicle.Body.Mirrors.DriverSide.IsLocked', 
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        }, 
-        {
-          entity: 'mirror_right',
-          optionsName: 'mirror_right_isfolded',
-          api: 'Vehicle.Body.Mirrors.PassengerSide.IsFolded', 
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        },      
-        {
-          entity: 'mirror_right',
-          behaviour:"islocked",
-          optionsName: 'mirror_right_islocked',
-          api: 'Vehicle.Body.Mirrors.PassengerSide.IsLocked',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        }, 
-        {
-          entity: 'window_1',
-          optionsName: 'window_isopen',
-          api: 'Vehicle.Cabin.Door.Row1.DriverSide.Window.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        }, 
-        {
-          entity: 'window_1',
-          behaviour:"",
-          optionsName: 'window1_position',
-          api: 'Vehicle.Cabin.Door.Row1.DriverSide.Window.Position',
-          dataType: "uint8",
-          lastValue: 100,
-          actionMaps: "position"         
-        }, 
-        {
-          entity: 'window_2',
-          behaviour:"",
-          optionsName: 'window2_isopen',
-          api: 'Vehicle.Cabin.Door.Row1.PassengerSide.Window.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps: {
-             "true": "true",
-            "false": "false"
-          }       
-        }, 
-        {
-          entity: 'window_2',
-          behaviour:"",
-          optionsName: 'window2_position',
-          api: 'Vehicle.Cabin.Door.Row1.PassengerSide.Window.Position',
-          dataType: "uint8",
-          lastValue: 100,
-          actionMaps: "position"         
-        }, 
-        {
-          entity: 'window_3',
-          behaviour:"",
-          optionsName: 'window3_isopen',
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity: 'window_3',
-          behaviour:"",
-          optionsName: 'window3_position',
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.Position',
-          dataType: "uint8",
-          lastValue: 100,
-          actionMaps: "position"         
-        }, 
-        {
-          entity: 'window_4',
-          behaviour:"",
-          optionsName: 'window4_isopen',
-          api: 'Vehicle.Cabin.Door.Row2.PassengerSide.Window.IsOpen',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity: 'window_4',
-          behaviour:"",
-          optionsName: 'window4_position',
-          api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.Position',
-          dataType: "uint8",
-          lastValue: 100,
-          actionMaps: "position"         
-        }, 
-        {
-          entity: 'ambientlight_1',
-          optionsName: 'ambientlight_1_color',
-          api: 'Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.Color',
-          dataType: "string",
-          lastValue: '',
-          actionMaps: 'set_color'
-        }, 
-        {
-          entity: 'ambientlight_1',
-          optionsName: 'ambientlight_1_ison',
-          api: 'Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.IsLightOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }
-        }, 
-        {
-          entity: 'ambientlight_2',
-          optionsName: 'ambientlight_2_color',
-          api: 'Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.Color',
-          dataType: "string",
-          lastValue: '',
-          actionMaps: 'set_color'
-        }, 
-        {
-          entity: 'ambientlight_2',
-          optionsName: 'ambientlight_2_ison',
-          api: 'Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.IsLightOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }
-        }, 
-        {
-          entity: 'wheels',
-          behaviour:"",
-          optionsName: 'wheels',
-          api: 'Vehicle.AverageSpeed',
-          dataType: "float",
-          lastValue: 0,
-          actionMaps:"speed"
-        },     
-        {
-          entity: 'license_plate',
-          behaviour:"",
-          optionsName: 'license_plate_light',
-          api: 'Vehicle.Body.Lights.LicensePlate.IsOn',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-        {
-          entity: 'air_bag',
-          behaviour:"",
-          optionsName: 'air_bag_light',
-          api: 'Vehicle.Body.Horn.IsActive',
-          dataType: "boolean",
-          lastValue: false,
-          actionMaps:{
-           "true": "true",
-            "false": "false"
-        }},
-      ]
+      console.log("Widget unloaded");
+    };
+  </script>
+</body>
 
-      // Logic for when the widget is loaded
-      const onWidgetLoaded = (options) => {
-        let carColor = options.car_color;
-        console.log("Widget options are:--------------------------------------------->", options.apis);          
-        OBJECT_MAPPING.forEach(obj => {
-          obj["api"] = options['apis'][obj.optionsName] || obj["api"]//set value for field optionsName via apis on browserbrowser      
-        })
-        // Periodically check the state of the doors
-        interval = setInterval(() => {
-          OBJECT_MAPPING.forEach(obj => {
-            if(!obj.api) return         
-            let newValue = getApiValue(obj.api)                                 
-            if(newValue == undefined) return
-            if(newValue.value !== obj.lastValue) {         
-              console.log(`Value changed for ${obj.entity}: ${obj.lastValue} -> ${newValue.value}`);
-              if(obj.dataType == 'boolean') {
-                let command = obj.actionMaps[String(newValue.value)]                     
-                if (obj.behaviour!== undefined)
-                {
-                  let behaviours = obj.behaviour
-                  sendRequestToUnity(obj.entity, command, behaviours)// behaviour for check behaviour(islocked) set in Unity
-                }
-                else
-                {
-                  sendRequestToUnity(obj.entity, command, '')//'' is defaul behavior IToggleable in Unity
-                }                           
-              } else {                
-                sendRequestToUnity(obj.entity, obj.actionMaps, newValue.value)
-                console.log(`actionMaps value is:---------------> ${obj.actionMaps}`)
-              }
-              obj.lastValue =  newValue.value;
-            }
-          })
-        }, 200);  // Check every 200ms
-      };
-
-      // Logic for when the widget is unloaded
-      const onWidgetUnloaded = (options) => {
-        if (interval) {
-          clearInterval(interval);  // Clear the interval if the widget is unloaded
-        }
-        console.log("Widget unloaded");
-      };
-    </script>
-  </body>
 </html>

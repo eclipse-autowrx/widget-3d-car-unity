@@ -2,7 +2,7 @@ function sayHello() {
       alert("Hello");
 }
 function ShowInfo(info) {
-      console.log("Info sent from Unity is: ----------->  " + Number(info));
+      // console.log("Info sent from Unity is: ----------->  " + Number(info));
 }
 
 function SetAPIFromUnity(name, value) {
@@ -36,13 +36,13 @@ function SetAPIFromUnity(name, value) {
                   setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.Window.IsOpen', value);
                   break;
             case 'window_3_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.Window.Position', value);
+                  setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.Window.Position', value);
                   break;
             case 'window_4':
                   setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.Window.IsOpen', value);
                   break;
             case 'window_4_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.PassengerSide.Window.Position', value);
+                  setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.Window.Position', value);
                   break;
             case 'row1_door1':
                   setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.IsOpen', value);

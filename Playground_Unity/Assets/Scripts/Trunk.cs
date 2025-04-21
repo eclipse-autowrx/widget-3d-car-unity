@@ -26,19 +26,19 @@ public class Trunk : MonoBehaviour, IClickable, IToggleable, ILockable, IActions
     }
     void Update()
     {
-        float targetAngle = isOpen ? openAngle : closedAngle; // Determine target angle based on open/closed state
+        //float targetAngle = isOpen ? openAngle : closedAngle; // NO NO, it's wrong
         
         // Determine the target rotation based on the selected rotation axis
         switch (optionsAngles)
         {
             case TargetAngles.targetAngleX:
-                targetRotation = Quaternion.Euler(targetAngle, 0, 0); // Rotate around the X-axis
+                targetRotation = Quaternion.Euler(openAngle, 0, 0); // Rotate around the X-axis
                 break;
             case TargetAngles.targetAngleY:
-                targetRotation = Quaternion.Euler(0, targetAngle, 0); // Rotate around the Y-axis
+                targetRotation = Quaternion.Euler(0, openAngle, 0); // Rotate around the Y-axis
                 break;
             case TargetAngles.targetAngleZ:
-                targetRotation = Quaternion.Euler(0, 0, targetAngle); // Rotate around the Z-axis
+                targetRotation = Quaternion.Euler(0, 0, openAngle); // Rotate around the Z-axis
                 break;
         }
 
@@ -50,18 +50,12 @@ public class Trunk : MonoBehaviour, IClickable, IToggleable, ILockable, IActions
         }
 
     }
-    public void Open(bool vlue)
+    public void Open(bool value)
     {
-        if(vlue & !isLocked)
-        {
-            isOpen = true;
-            openAngle = maxAngle;
-        }
-        else
-        {
-            isOpen = false;
-            openAngle = 0;
-        }
+        if(isLocked) return;
+        isOpen = value;
+        openAngle = value?maxAngle:0;
+        WebGLInteraction.SetValueAPIBrowser($"{gameObject.name}_position", isOpen?"100":"0");
     }
 
     public void OnClickAction()
@@ -74,15 +68,14 @@ public class Trunk : MonoBehaviour, IClickable, IToggleable, ILockable, IActions
     public void ActiveFunction(bool isActive)
     {
         Open(isActive);
-        if (!isActive)
-        {
-            openAngle = 0;
-            WebGLInteraction.SetValueAPIBrowser($"{gameObject.name}_position", openAngle.ToString());
-        }
     }
-    public void Locked(bool bul)
+    public void Locked(bool val)
     {
-        isLocked = bul;
+        if(val) {
+            Open(false);
+            WebGLInteraction.SetValueAPIBrowser(gameObject.name, isOpen.ToString());
+        }
+        isLocked = val;
     }
 
     public void ActiveFunctionsByAction(string actionName, string options)
@@ -93,15 +86,16 @@ public class Trunk : MonoBehaviour, IClickable, IToggleable, ILockable, IActions
                 if (isLocked) return;
                 var tempAngle = Mathf.Clamp(float.Parse(options), 0f, 100f);
                 openAngle = tempAngle * maxAngle / 100f;
-                if(tempAngle>0)
+                if(tempAngle>=100)
                 {
-                    isOpen = true;                 
+                    isOpen = true;      
+                    WebGLInteraction.SetValueAPIBrowser(gameObject.name, isOpen.ToString());           
                 }
-                else
+                if(tempAngle<=0)
                 {
                     isOpen = false;
+                    WebGLInteraction.SetValueAPIBrowser(gameObject.name, isOpen.ToString());
                 }
-                WebGLInteraction.SetValueAPIBrowser(gameObject.name, isOpen.ToString());
                 break;
         }
     }

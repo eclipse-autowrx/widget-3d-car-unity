@@ -6,7 +6,7 @@ public class Door : MonoBehaviour, IToggleable, IActions, ILockable
     public float rotationSpeed = 5f;
 
     // Target angles for open and close states
-    public float openAngle = 70f;
+    public float openAngle = 0f;
     public float maxAngle;
     public float closedAngle = 0f;
 
