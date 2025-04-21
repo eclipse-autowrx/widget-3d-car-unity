@@ -12,7 +12,7 @@ mergeInto(LibraryManager.library, {
 });
 mergeInto(LibraryManager.library, {
     SendCameraPositionToJS: function (x, y, z) {
-        console.log("Camera Position from Unity:", x, y, z);
+        // console.log("Camera Position from Unity:", x, y, z);
         window.ReceiveCameraPosition(x, y, z);
     }
 });

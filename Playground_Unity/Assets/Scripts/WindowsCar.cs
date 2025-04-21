@@ -42,25 +42,24 @@ public class WindowCar : MonoBehaviour, IToggleable, IActions
     }
 
     void Update()
-    {       
-        if (currentTargetPos != null)
-        {           
-            // Choose the correct target position based on whether the window is down or not
-            Vector3 targetPosition = isDown ? currentTargetPos.localPosition : startPos;
+    {     
+        if(currentTargetPos == null)  return;
+      
+        // Choose the correct target position based on whether the window is down or not
+        // Vector3 targetPosition = isDown ? currentTargetPos.localPosition : startPos; ==> NO it's wrong
 
-            // Move the window towards the target position
-            transform.localPosition = Vector3.MoveTowards(transform.localPosition, targetPosition, moveSpeed * Time.deltaTime);
+        // Move the window towards the target position
+        transform.localPosition = Vector3.MoveTowards(transform.localPosition, currentTargetPos.localPosition, moveSpeed * Time.deltaTime);
 
-            // Update the target position based on the percentage value
-            if ((Vector3.Distance(transform.localPosition, hiddenPos)) > 0.01f)
-            {
-                gameObject.GetComponent<MeshRenderer>().enabled = true;   
-            }
-            else
-            {
-                gameObject.GetComponent<MeshRenderer>().enabled = false;
-            }
-        }     
+        // Update the target position based on the percentage value
+        if ((Vector3.Distance(transform.localPosition, hiddenPos)) > 0.01f)
+        {
+            gameObject.GetComponent<MeshRenderer>().enabled = true;   
+        }
+        else
+        {
+            gameObject.GetComponent<MeshRenderer>().enabled = false;
+        } 
     }
 
     // Function to activate the window movement based on a boolean value
@@ -71,47 +70,38 @@ public class WindowCar : MonoBehaviour, IToggleable, IActions
 
         // Set animation state based on the input
         //anim.SetBool("isDown", isActive);
-        SetIsDown(isActive);
+        // SetIsDown(isActive);
+        isDown = isActive;
+
+        float tmpPosition = isActive?100:0;
+        SetTargetPos(tmpPosition);
+        WebGLInteraction.SetValueAPIBrowser($"{gameObject.name}_position", tmpPosition.ToString());
     }
-    public void SetIsDown(bool bul)
-    {
-        isDown = bul;
-        // Adjust the Y position of the target based on the calculated movement amount
-        Vector3 newTargetPosition = startPos;
-        if (isDown)
-        {
-            newTargetPosition.y -= range;
-            currentTargetPos.localPosition = newTargetPosition;
-        }
-        else
-        {
-            currentTargetPos.localPosition = startPos;       
-        }           
-    }
+
     // Set the target position based on a given percentage
     public void SetTargetPos(float percentage)
     {
-        if (currentTargetPos != null )
+        if(currentTargetPos == null) return;
+
+        if (percentage >= 100)
         {
-            if (percentage > 0)
-            {
-                WebGLInteraction.SetValueAPIBrowser(gameObject.name, "true");
-            }
-            else
-            {
-                WebGLInteraction.SetValueAPIBrowser(gameObject.name, "false");
-            }
+            WebGLInteraction.SetValueAPIBrowser(gameObject.name, "true");
+        }
 
-            // Calculate the movement amount based on the percentage
-            float moveAmount = percentage * range / 100f;
+        if (percentage <= 0)
+        {
+            WebGLInteraction.SetValueAPIBrowser(gameObject.name, "false");
+        }
 
-            // Adjust the Y position of the target based on the calculated movement amount
-            Vector3 newTargetPosition = startPos;
-            newTargetPosition.y -= moveAmount;
+        // Calculate the movement amount based on the percentage
+        float moveAmount = percentage * range / 100f;
 
-            // Apply the new position to the target
-            currentTargetPos.localPosition = newTargetPosition;
-        }      
+        // Adjust the Y position of the target based on the calculated movement amount
+        Vector3 newTargetPosition = startPos;
+        newTargetPosition.y -= moveAmount;
+
+        // Apply the new position to the target
+        currentTargetPos.localPosition = newTargetPosition;   
     }
 
     public void ActiveFunctionsByAction(string actionName, string options)
