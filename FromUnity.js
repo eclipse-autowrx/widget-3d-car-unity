@@ -8,13 +8,19 @@ function ShowInfo(info) {
 function SetAPIFromUnity(name, value) {
       // console.log(`Unity request set component ${name} ------>  ${value}`)
       try {
-            if(OBJECT_MAPPING && OBJECT_MAPPING["apis"] && name) {
-                  let signalName = OBJECT_MAPPING["apis"][name]
-                  if(signalName){
-                        setApiValue(signalName, value);
-                  }
+            let found = false
+            if(OBJECT_MAPPING && name && setApiValue) {
+                  OBJECT_MAPPING.forEach(obj => {
+                        if(obj.unity_name && obj.unity_name == name && obj.api) {
+                              setApiValue(obj.api, value); 
+                              found = true
+                        }
+                  })
             }
-      } catch(e) {}
+            if(!found) console.log("NOT FOUND", name)
+      } catch(e) {
+            console.log(e)
+      }
 }
 
 function ReceiveCameraPosition(x, y, z) {

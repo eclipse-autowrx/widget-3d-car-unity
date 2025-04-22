@@ -3,7 +3,8 @@ var SIGNAL_MAP = [
         entity: 'row1_door1',//param for Unity (entity)
         behaviour: "",//for check "islocked"
         optionsName: 'row1_door1_open',//field on browser
-        api: 'Vehicle.Cabin.Door.Row1.Driver.IsOpen',//API defaul
+        api: 'Vehicle.Cabin.Door.Row1.DriverSide.IsOpen',//API defaul
+        unity_name: "row1_door1",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -15,6 +16,7 @@ var SIGNAL_MAP = [
         entity: 'row1_door1',
         optionsName: 'door1_position',
         api: 'Vehicle.Cabin.Door.Row1.DriverSide.Position',
+        unity_name: 'row1_door1_position',
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: 'position'
@@ -34,7 +36,8 @@ var SIGNAL_MAP = [
     {
         entity: 'row1_door2',
         optionsName: 'row1_door2_open',
-        api: 'Vehicle.Cabin.Door.Row1.Passenger.IsOpen',
+        api: 'Vehicle.Cabin.Door.Row1.PassengerSide.IsOpen',
+        unity_name: 'row1_door2',
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -46,6 +49,7 @@ var SIGNAL_MAP = [
         entity: 'row1_door2',
         optionsName: 'door2_position',
         api: 'Vehicle.Cabin.Door.Row1.PassengerSide.Position',
+        unity_name: 'row1_door2_position',
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: 'position'
@@ -89,6 +93,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'trunk_rear_open',
         api: 'Vehicle.Body.Trunk.Rear.IsOpen',
+        unity_name: "trunk_rear",
         dataType: 'boolean',
         lastValue: false,
         actionMaps: {
@@ -101,6 +106,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'trunk_rear_position',
         api: 'Vehicle.Body.Trunk.Rear.Position',
+        unity_name: "trunk_rear_position",
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: "position"
@@ -110,6 +116,7 @@ var SIGNAL_MAP = [
         behaviour: "islocked",
         optionsName: 'trunk_rear_islocked',
         api: 'Vehicle.Body.Trunk.Rear.IsLocked',
+        unity_name: "",
         dataType: 'boolean',
         lastValue: false,
         actionMaps: {
@@ -134,6 +141,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'trunk_front_position',
         api: 'Vehicle.Body.Trunk.Front.Position',
+        unity_name: "trunk_front_position",
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: "position"
@@ -142,6 +150,7 @@ var SIGNAL_MAP = [
         entity: 'trunk_front',
         behaviour: "",
         optionsName: 'trunk_front_isopen',
+        unity_name: "trunk_front",
         api: 'Vehicle.Body.Trunk.Front.IsOpen',
         dataType: "boolean",
         lastValue: false,
@@ -265,6 +274,7 @@ var SIGNAL_MAP = [
         entity: 'row2_door3',//param for Unity (entity)
         optionsName: 'row2_door3_open',//field on browser 
         api: 'Vehicle.Cabin.Door.Row2.DriverSide.IsOpen',
+        unity_name: "row2_door3",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -276,6 +286,7 @@ var SIGNAL_MAP = [
         entity: 'row2_door3',//param for Unity (entity)
         optionsName: 'door3_position',//field on browser 
         api: 'Vehicle.Cabin.Door.Row2.DriverSide.Position',
+        unity_name: "row2_door3_position",
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: 'position'
@@ -297,6 +308,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'row2_door4_open',
         api: 'Vehicle.Cabin.Door.Row2.PassengerSide.IsOpen',
+        unity_name: "row2_door4",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -309,6 +321,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'door4_position',//field on browser 
         api: 'Vehicle.Cabin.Door.Row2.PassengerSide.Position',
+        unity_name: "row2_door4_position",
         dataType: 'uint8',
         lastValue: 0,
         actionMaps: 'position'
@@ -391,6 +404,7 @@ var SIGNAL_MAP = [
         entity: 'window_1',
         optionsName: 'window_isopen',
         api: 'Vehicle.Cabin.Door.Row1.DriverSide.Window.IsOpen',
+        unity_name: "window_1",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -403,6 +417,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window1_position',
         api: 'Vehicle.Cabin.Door.Row1.DriverSide.Window.Position',
+        unity_name: "window_1_position",
         dataType: "uint8",
         lastValue: 0,
         actionMaps: "position"
@@ -412,6 +427,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window2_isopen',
         api: 'Vehicle.Cabin.Door.Row1.PassengerSide.Window.IsOpen',
+        unity_name: "window_2",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -424,6 +440,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window2_position',
         api: 'Vehicle.Cabin.Door.Row1.PassengerSide.Window.Position',
+        unity_name: "window_2_position",
         dataType: "uint8",
         lastValue: 0,
         actionMaps: "position"
@@ -433,6 +450,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window3_isopen',
         api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.IsOpen',
+        unity_name: "window_3",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -445,6 +463,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window3_position',
         api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.Position',
+        unity_name: "window_3_position",
         dataType: "uint8",
         lastValue: 0,
         actionMaps: "position"
@@ -454,6 +473,7 @@ var SIGNAL_MAP = [
         behaviour: "",
         optionsName: 'window4_isopen',
         api: 'Vehicle.Cabin.Door.Row2.PassengerSide.Window.IsOpen',
+        unity_name: "window_4",
         dataType: "boolean",
         lastValue: false,
         actionMaps: {
@@ -465,7 +485,8 @@ var SIGNAL_MAP = [
         entity: 'window_4',
         behaviour: "",
         optionsName: 'window4_position',
-        api: 'Vehicle.Cabin.Door.Row2.DriverSide.Window.Position',
+        api: 'Vehicle.Cabin.Door.Row2.PassengerSide.Window.Position',
+        unity_name: "window_4_position",
         dataType: "uint8",
         lastValue: 0,
         actionMaps: "position"
