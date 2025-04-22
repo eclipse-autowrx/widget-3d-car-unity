@@ -37,20 +37,20 @@ public class CameraController : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            isSendData = false;
-        }
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            isSendData = true;
-        }
+        // if (Input.GetKeyDown(KeyCode.O))
+        // {
+        //     isSendData = false;
+        // }
+        // if (Input.GetKeyDown(KeyCode.P))
+        // {
+        //     isSendData = true;
+        // }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Vector3 camPos = Camera.main.transform.position;
-            SendCameraPositionToJS(camPos.x, camPos.y, camPos.z);
-        }
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     Vector3 camPos = Camera.main.transform.position;
+        //     SendCameraPositionToJS(camPos.x, camPos.y, camPos.z);
+        // }
 
         if (Input.GetMouseButton(0))
         {
@@ -75,6 +75,16 @@ public class CameraController : MonoBehaviour
 
             transform.position = position;
             transform.LookAt(target);
+        }
+    }
+
+    public void ControlComponent(string action)
+    {
+        if(action=="move_toward") {
+            distance -= 0.8f;
+        }
+        if(action=="move_backward") {
+            distance += 0.8f;
         }
     }
 

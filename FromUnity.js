@@ -7,73 +7,62 @@ function ShowInfo(info) {
 
 function SetAPIFromUnity(name, value) {
       // console.log(`Unity request set component ${name} ------>  ${value}`)
-      switch (name) {
-            case 'trunk_front':
-                  setApiValue('Vehicle.Body.Trunk.Front.IsOpen', value);
-                  break;
-            case 'trunk_front_position':
-                  setApiValue('Vehicle.Body.Trunk.Front.Position', value);
-                  break;
-            case 'trunk_rear':
-                  setApiValue('Vehicle.Body.Trunk.Rear.IsOpen', value);
-                  break;
-            case 'trunk_rear_position':
-                  setApiValue('Vehicle.Body.Trunk.Rear.Position', value);
-                  break;
-            case 'window_1':
-                  setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.Window.IsOpen', value);
-                  break;
-            case 'window_1_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.Window.Position', value);
-                  break;
-            case 'window_2':
-                  setApiValue('Vehicle.Cabin.Door.Row1.PassengerSide.Window.IsOpen', value);
-                  break;
-            case 'window_2_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.PassengerSide.Window.Position', value);
-                  break;
-            case 'window_3':
-                  setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.Window.IsOpen', value);
-                  break;
-            case 'window_3_position':
-                  setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.Window.Position', value);
-                  break;
-            case 'window_4':
-                  setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.Window.IsOpen', value);
-                  break;
-            case 'window_4_position':
-                  setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.Window.Position', value);
-                  break;
-            case 'row1_door1':
-                  setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.IsOpen', value);
-                  break;
-            case 'row1_door1_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.DriverSide.Position', value);
-                  break;
-            case 'row1_door2':
-                  setApiValue('Vehicle.Cabin.Door.Row1.PassengerSide.IsOpen', value);
-                  break;
-            case 'row1_door2_position':
-                  setApiValue('Vehicle.Cabin.Door.Row1.PassengerSide.Position', value);
-                  break;
-            case 'row2_door3':
-                  setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.IsOpen', value);
-                  break;
-            case 'row2_door3_position':
-                  setApiValue('Vehicle.Cabin.Door.Row2.DriverSide.Position', value);
-                  break;
-            case 'row2_door4':
-                  setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.IsOpen', value);
-                  break;
-            case 'row2_door4_position':
-                  setApiValue('Vehicle.Cabin.Door.Row2.PassengerSide.Position', value);
-                  break;
-            default:
-                  console.log("Unknown name: " + name);
-                  break;
-      }
+      try {
+            if(OBJECT_MAPPING && OBJECT_MAPPING["apis"] && name) {
+                  let signalName = OBJECT_MAPPING["apis"][name]
+                  if(signalName){
+                        setApiValue(signalName, value);
+                  }
+            }
+      } catch(e) {}
 }
-ReceiveCameraPosition = function (x, y, z) {
-      //     console.log("Camera Position from Unity:","x:"+ x,"y:"+ y,"z:"+ z);   
-};
 
+function ReceiveCameraPosition(x, y, z) {
+      const driver_x = -1.7
+      const driver_y = 0.98
+      const driver_z = 2.410
+
+      try {
+            if(WIDGET_OPTIONS) {
+                  // deverloper mode
+                  if(!!WIDGET_OPTIONS.developer_mode){
+                        let divDeveloper = document.getElementById("panelDeveloper")
+                        let divXval = document.getElementById("camXval")
+                        let divYval = document.getElementById("camYval")
+                        let divZval = document.getElementById("camZval")
+                        if(divDeveloper) {
+                              divDeveloper.classList.remove('hidden');
+                              divDeveloper.classList.add('fixed');
+                        } else {
+                              console.log(">>>>>>>>>>>>>>>> NO divDeveloper")
+                        }
+                        if(divXval) {
+                              divXval.textContent = x.toFixed(1)
+                        }
+                        if(divYval) {
+                              divYval.textContent = y.toFixed(1)
+                        }
+                        if(divZval) {
+                              divZval.textContent = z.toFixed(1)
+                        }
+                  }
+
+                  // Proximity: distance between driver and car
+                  let distance = 2.4*(Math.abs(x-driver_x) + Math.abs(y-driver_y))
+                  if(WIDGET_OPTIONS.proximity_signal_name && setApiValue) {
+                        setApiValue(WIDGET_OPTIONS.proximity_signal_name, distance.toFixed(2))
+                  }
+                  
+                  let divDistance = document.getElementById("distance")
+                  let divDistanceVal = document.getElementById("distanceVal")
+                  if(divDistance && divDistanceVal) {
+                        if(!!WIDGET_OPTIONS.show_proximity_value) {
+                              divDistanceVal.textContent  = distance.toFixed(2)
+                              divDistance.classList.remove('hidden');
+                              divDistance.classList.add('fixed');
+                        }
+                  }
+            }
+            
+      } catch(e) {}
+};

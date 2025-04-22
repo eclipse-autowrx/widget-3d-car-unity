@@ -7,6 +7,7 @@
   <title>Playground_Unity</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.46.0/tabler-icons.min.css">
 
   <!-- Import Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +17,38 @@
 </head>
 
 <body>
+
+  <div id="panelDeveloper"
+    class="hidden bottom-2 left-2 px-2 rounded bg-slate-700 text-white z-50 flex items-center text-sm">
+    <span class="w-2 text-white">X</span>
+    <span id="camXval" class="ml-1 w-6 font-bold text-yellow-500"></span>
+    <span class="ml-4 w-2 text-white">Y</span>
+    <span id="camYval" class="ml-1 w-6 font-bold text-yellow-500"></span>
+    <span class="ml-4 w-2 text-white">Z</span>
+    <span id="camZval" class="ml-1 w-6 font-bold text-yellow-500"></span>
+  </div>
+
+  <div id="control"
+    class="flex-col hidden space-y-2 bottom-8 right-2 px-2 py-2 rounded bg-slate-700 text-white z-50 items-center text-sm">
+    <div class="text-xs text-gray-200 !opacity-100">Move</div>
+    <div class="flex flex-col text-white space-y-2 select-none cursor-pointer">
+      <div id="btnForward"
+        class="flex hover:opacity-60 w-fit justify-center bg-blue-500 items-center rounded text-white p-2 text-base">
+        <i class="ti ti-arrow-up"></i>
+      </div>
+      <div id="btnBackward"
+        class="flex hover:opacity-60 w-fit justify-center bg-blue-500 items-center rounded text-white p-2 text-base">
+        <i class="ti ti-arrow-down"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="distance"
+    class="hidden bottom-2 right-2 px-2 rounded bg-slate-700 text-white z-50 flex items-center text-sm">
+    Distance:
+    <span id="distanceVal" class="ml-2 font-bold text-yellow-500"></span>
+  </div>
+
   <!-- Unity WebGL container -->
   <div id="unity-container" class="unity-desktop">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
@@ -36,6 +69,8 @@
   <script src="data.js"></script>
 
   <script>
+
+    var WIDGET_OPTIONS = {}
 
     function callFromUnity(command, name, value) {
       if (command == "set-api-value" && name) {
@@ -103,39 +138,41 @@
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
-      // Once Unity loader script is loaded, create the Unity instance
       createUnityInstance(canvas, config, (progress) => {
         document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
       }).then((instance) => {
         unityInstance = instance;  // Store reference to Unity instance
         document.querySelector("#unity-loading-bar").style.display = "none";  // Hide loading bar
+        setTimeout(() => {
+          let controlDiv = document.getElementById("control")
+          if(controlDiv) {
+            controlDiv.classList.remove('hidden');
+            controlDiv.classList.add('fixed');
+          }
+        }, 3000)
       }).catch((message) => {
         alert(message);  // Alert if there's an error creating Unity instance
       });
     };
     document.body.appendChild(script);
 
-    // Button to call a function in Unity
-    // document.getElementById("callUnityFunction").onclick = function() {
-    //   if (unityInstance) {
-    //     unityInstance.SendMessage("GameController", "Hello", "Hello from JavaScript!");  // Send message to Unity
-    //   } else {
-    //     alert("Unity instance is not ready!");  // Show alert if Unity instance is not loaded
-    //   }
-    // };
-
     // Additional custom logic for widget loading and unloading
     const appendLog = () => { };
     let left_door_opened = false;
     let interval;
     let viewpoint;
-    let VEHICLE_PAINT = "#005072";
+    // let VEHICLE_PAINT = "#005072";
 
     function sendRequestToUnity(name, action, options) {
       if (!unityInstance) return
       let message = JSON.stringify({ name, action, options });
-      unityInstance.SendMessage("CarController", "ControlComponent", message); //This API only reveive 1 parameter
-      // console.log("unityInstance.SendMessage", message)
+      unityInstance.SendMessage("CarController", "ControlComponent", message);
+      // console.log(`sendRequestToUnity message ${message}`)
+    }
+
+    function sengMessageToCamera(action) {
+      if (!unityInstance) return
+      unityInstance.SendMessage("Main Camera", "ControlComponent", action);
     }
 
     var OBJECT_MAPPING = SIGNAL_MAP
@@ -145,14 +182,19 @@
         let command = obj.actionMaps[String(newValue.value)]
         if (obj.behaviour !== undefined) {
           let behaviours = obj.behaviour
-          sendRequestToUnity(obj.entity, command, behaviours)// behaviour for check behaviour(islocked) set in Unity
+          sendRequestToUnity(obj.entity, command, behaviours)
         }
         else {
-          sendRequestToUnity(obj.entity, command, '')//'' is defaul behavior IToggleable in Unity
+          sendRequestToUnity(obj.entity, command, '')
         }
       } else {
-        sendRequestToUnity(obj.entity, obj.actionMaps, newValue.value)
-        // console.log(`actionMaps value is:---------------> ${obj.actionMaps}`)
+        if (typeof (obj.actionMaps) == "string") {
+          sendRequestToUnity(obj.entity, obj.actionMaps, newValue.value)
+        }
+        if (typeof (obj.actionMaps) == "object") {
+          sendRequestToUnity(obj.entity, obj.actionMaps[String(newValue.value)], newValue.value)
+        }
+
       }
       obj.lastValue = newValue.value;
     }
@@ -163,12 +205,9 @@
 
         let newValue = getApiValue(obj.api)
         if (newValue && (obj.isFirstSent || newValue.value !== obj.lastValue)) {
-          // console.log(obj)
-          if(obj.isFirstSent) {
-            // console.log("====== isFirstSent")
+          if (obj.isFirstSent) {
             obj.isFirstSent = false
           }
-          // console.log("====== sendValueToUnity", obj, newValue)
           sendValueToUnity(obj, newValue)
         }
       })
@@ -176,29 +215,63 @@
 
     // Logic for when the widget is loaded
     const onWidgetLoaded = (options) => {
-      let carColor = options.car_color;
-      console.log("Widget options are:--------------------------------------------->", options.apis);
+
+      try {
+        let btnForward = document.getElementById("btnForward")
+        if (btnForward) {
+          btnForward.addEventListener('click', () => {
+            // console.log("btnForward clicked")
+            try {
+              sengMessageToCamera("move_toward")
+            } catch(e) {}
+          });
+        }
+
+        let btnBackward = document.getElementById("btnBackward")
+        if (btnBackward) {
+          btnBackward.addEventListener('click', () => {
+            // console.log("btnBackward clicked")
+            try {
+              sengMessageToCamera("move_backward")
+            } catch(e) {}
+          });
+        } else {
+          console.log("btnBackward NOTFOUND")
+        }
+      } catch (e) { }
+      // parsing options 
+      WIDGET_OPTIONS = options || {}
+      if (!WIDGET_OPTIONS.apis) {
+        WIDGET_OPTIONS.apis = {}
+      }
+
+      // let carColor = WIDGET_OPTIONS.car_color;
+      let cfgForceResetSignalValue = !!WIDGET_OPTIONS.force_reset_signal_value
+      let cfgForceResetSignalDelay = WIDGET_OPTIONS.force_reset_signal_delay || 3000
+      let cfgSignalSyncInterval = WIDGET_OPTIONS.signal_sync_interval || 200
+
       OBJECT_MAPPING.forEach(obj => {
-        obj["api"] = options['apis'][obj.optionsName] || obj["api"] //set value for field optionsName via apis on browserbrowser 
-        obj.isFirstSent = true  
-        if(obj.api) {
-          // console.log(`====== isInit setApiValue ${obj.api} ${obj.lastValue}`)
-          // setTimeout(() => {
-          //   setApiValue(obj.api, `${obj.lastValue}`)  
-          // }, 3000)
+        try {
+          obj["api"] = WIDGET_OPTIONS['apis'][obj.optionsName] || obj["api"]
+        } catch (e) { }
+        obj.isFirstSent = true
+        if (cfgForceResetSignalValue && obj.api) {
+          console.log(`====== isInit setApiValue ${obj.api} ${obj.lastValue}`)
+          setTimeout(() => {
+            setApiValue(obj.api, `${obj.lastValue}`)
+          }, cfgForceResetSignalDelay)
         }
       })
       setTimeout(() => {
-        interval = setInterval(syncAction, 200);
+        interval = setInterval(syncAction, cfgSignalSyncInterval);
       }, 3000)
     };
 
     // Logic for when the widget is unloaded
     const onWidgetUnloaded = (options) => {
       if (interval) {
-        clearInterval(interval);  // Clear the interval if the widget is unloaded
+        clearInterval(interval);
       }
-      console.log("Widget unloaded");
     };
   </script>
 </body>

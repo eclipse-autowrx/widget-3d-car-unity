@@ -178,11 +178,12 @@ var SIGNAL_MAP = [
         entity: 'light_brake',
         optionsName: 'light_brake_active',
         api: 'Vehicle.Body.Lights.Brake.IsActive',
-        dataType: 'boolean',
-        lastValue: false,
+        dataType: 'string',
+        lastValue: "INACTIVE",
         actionMaps: {
             "ACTIVE": "turn_on_brake",
-            "INACTIVE": "turn_off_brake"
+            "INACTIVE": "turn_off_brake",
+            "ADAPTIVE": "turn_on_brake",
         }
     },
     {
