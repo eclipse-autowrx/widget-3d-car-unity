@@ -18,6 +18,9 @@ public class CameraController : MonoBehaviour
     private float currentY = 23.6f;
     private float zoomSpeed = 5f;
 
+    private Vector3 targetPosDriver = new Vector3(-1.666f, 1.105f, 0.416f);
+    private Vector3 targetPosFront = new Vector3(3.15f, 1.105f, 0.416f);
+
     bool isSendData = true;
     void Start()
     {
@@ -37,20 +40,57 @@ public class CameraController : MonoBehaviour
     void Update()
     {
 
-        // if (Input.GetKeyDown(KeyCode.O))
-        // {
-        //     isSendData = false;
-        // }
-        // if (Input.GetKeyDown(KeyCode.P))
-        // {
-        //     isSendData = true;
-        // }
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            Debug.Log("M");
+            if(target!=null) {
+                target.position = targetPosDriver;
+            }
+        }
 
-        // if (Input.GetKeyDown(KeyCode.Space))
-        // {
-        //     Vector3 camPos = Camera.main.transform.position;
-        //     SendCameraPositionToJS(camPos.x, camPos.y, camPos.z);
-        // }
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            Debug.Log("N");
+            if(target!=null) {
+                target.position = targetPosFront;
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            Debug.Log("LeftArrow");
+            currentX += 1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            Debug.Log("RightArrow");
+            currentX -= 1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Debug.Log("L");
+            currentY -= 1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            Debug.Log("J");
+            currentY += 1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            Debug.Log("KeyCode.DownArrow");
+            distance += 0.2f;
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            Debug.Log("KeyCode.UpArrow");
+            distance -= 0.2f;
+        }
 
         if (Input.GetMouseButton(0))
         {
@@ -59,12 +99,13 @@ public class CameraController : MonoBehaviour
 
             currentY = Mathf.Clamp(currentY, 5f, 80f);
         }
+
        
         float scroll = Input.GetAxis("Mouse ScrollWheel");
-        distance -= scroll * zoomSpeed;
-        distance = Mathf.Clamp(distance, minDistance, maxDistance);
-
-        
+        if(scroll != 0) {
+            distance -= scroll * zoomSpeed;
+            distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        }
     }
     private void LateUpdate()
     {
@@ -72,6 +113,8 @@ public class CameraController : MonoBehaviour
         {
             Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
             Vector3 position = target.position - (rotation * Vector3.forward * distance);
+
+            Debug.Log("currentX: " + currentX + "  currentY: " + currentY + "  distance:" + distance);
 
             transform.position = position;
             transform.LookAt(target);
